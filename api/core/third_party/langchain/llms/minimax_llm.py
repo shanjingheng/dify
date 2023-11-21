@@ -106,6 +106,7 @@ class MinimaxChatLLM(BaseChatModel):
             "tokens_to_generate": self.max_tokens,
             "temperature": self.temperature,
             "top_p": self.top_p,
+            "skip_info_mask": True,
             "role_meta": {"user_name": "我", "bot_name": "专家"},
             **self.model_kwargs,
         }
