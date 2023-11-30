@@ -24,6 +24,7 @@ export type QueryParam = {
   period?: number | string
   annotation_status?: string
   keyword?: string
+  time_type?: string
 }
 
 // Custom page count is not currently supported.

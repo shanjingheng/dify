@@ -63,6 +63,10 @@ const translation = {
       annotated: 'Annotated Improvements ({{count}} items)',
       not_annotated: 'Not Annotated',
     },
+    timeType: {
+      createdTime: 'CreatedTime',
+      updatedTime: 'UpdatedTime',
+    },
   },
 }
 

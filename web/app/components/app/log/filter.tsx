@@ -61,6 +61,19 @@ const Filter: FC<IFilterProps> = ({ appId, queryParams, setQueryParams }: IFilte
             { value: 'not_annotated', name: t('appLog.filter.annotation.not_annotated') }]}
         />
       </div>
+      <div className="relative ml-4 rounded-md mr-4">
+        <SimpleSelect
+          defaultValue={'created'}
+          className='!w-[200px]'
+          onSelect={
+            (item) => {
+              setQueryParams({ ...queryParams, time_type: item.value as string })
+            }
+          }
+          items={[{ value: 'created', name: t('appLog.filter.timeType.createdTime') },
+            { value: 'updated', name: t('appLog.filter.timeType.updatedTime') }]}
+        />
+      </div>
       <div className="relative">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
           <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />

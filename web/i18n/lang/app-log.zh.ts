@@ -63,6 +63,10 @@ const translation = {
       annotated: '已标注改进（{{count}} 项）',
       not_annotated: '未标注',
     },
+    timeType: {
+      createdTime: '创建时间',
+      updatedTime: '更新时间',
+    },
   },
 }
 

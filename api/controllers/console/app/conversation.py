@@ -37,6 +37,7 @@ class CompletionConversationApi(Resource):
                             choices=['annotated', 'not_annotated', 'all'], default='all', location='args')
         parser.add_argument('page', type=int_range(1, 99999), default=1, location='args')
         parser.add_argument('limit', type=int_range(1, 100), default=20, location='args')
+        parser.add_argument('time_type', type=str, choices=['created', 'updated'], default='created',  location='args')
         args = parser.parse_args()
 
         # get app info
@@ -65,7 +66,10 @@ class CompletionConversationApi(Resource):
             start_datetime_timezone = timezone.localize(start_datetime)
             start_datetime_utc = start_datetime_timezone.astimezone(utc_timezone)
 
-            query = query.where(Conversation.created_at >= start_datetime_utc)
+            if args['time_type'] == 'updated':
+                query = query.where(Conversation['updated_at'] < start_datetime_utc)
+            else:
+                query = query.where(Conversation['created_at'] < start_datetime_utc)
 
         if args['end']:
             end_datetime = datetime.strptime(args['end'], '%Y-%m-%d %H:%M')
@@ -74,7 +78,10 @@ class CompletionConversationApi(Resource):
             end_datetime_timezone = timezone.localize(end_datetime)
             end_datetime_utc = end_datetime_timezone.astimezone(utc_timezone)
 
-            query = query.where(Conversation.created_at < end_datetime_utc)
+            if args['time_type'] == 'updated':
+                query = query.where(Conversation['updated_at'] < end_datetime_utc)
+            else:
+                query = query.where(Conversation['created_at'] < end_datetime_utc)
 
         if args['annotation_status'] == "annotated":
             query = query.options(joinedload(Conversation.message_annotations)).join(
@@ -148,6 +155,7 @@ class ChatConversationApi(Resource):
         parser.add_argument('message_count_gte', type=int_range(1, 99999), required=False, location='args')
         parser.add_argument('page', type=int_range(1, 99999), required=False, default=1, location='args')
         parser.add_argument('limit', type=int_range(1, 100), required=False, default=20, location='args')
+        parser.add_argument('time_type', type=str, choices=['created', 'updated'], default='created',  location='args')
         args = parser.parse_args()
 
         # get app info
@@ -179,7 +187,10 @@ class ChatConversationApi(Resource):
             start_datetime_timezone = timezone.localize(start_datetime)
             start_datetime_utc = start_datetime_timezone.astimezone(utc_timezone)
 
-            query = query.where(Conversation.created_at >= start_datetime_utc)
+            if args['time_type'] == 'updated':
+                query = query.where(Conversation['updated_at'] < start_datetime_utc)
+            else:
+                query = query.where(Conversation['created_at'] < start_datetime_utc)
 
         if args['end']:
             end_datetime = datetime.strptime(args['end'], '%Y-%m-%d %H:%M')
@@ -188,7 +199,10 @@ class ChatConversationApi(Resource):
             end_datetime_timezone = timezone.localize(end_datetime)
             end_datetime_utc = end_datetime_timezone.astimezone(utc_timezone)
 
-            query = query.where(Conversation.created_at < end_datetime_utc)
+            if args['time_type'] == 'updated':
+                query = query.where(Conversation['updated_at'] < end_datetime_utc)
+            else:
+                query = query.where(Conversation['created_at'] < end_datetime_utc)
 
         if args['annotation_status'] == "annotated":
             query = query.options(joinedload(Conversation.message_annotations)).join(
