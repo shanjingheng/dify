@@ -67,9 +67,9 @@ class CompletionConversationApi(Resource):
             start_datetime_utc = start_datetime_timezone.astimezone(utc_timezone)
 
             if args['time_type'] == 'updated':
-                query = query.where(Conversation.updated_at < start_datetime_utc)
+                query = query.where(Conversation.updated_at > start_datetime_utc)
             else:
-                query = query.where(Conversation.created_at < start_datetime_utc)
+                query = query.where(Conversation.created_at > start_datetime_utc)
 
         if args['end']:
             end_datetime = datetime.strptime(args['end'], '%Y-%m-%d %H:%M')
@@ -188,9 +188,9 @@ class ChatConversationApi(Resource):
             start_datetime_utc = start_datetime_timezone.astimezone(utc_timezone)
 
             if args['time_type'] == 'updated':
-                query = query.where(Conversation.updated_at < start_datetime_utc)
+                query = query.where(Conversation.updated_at > start_datetime_utc)
             else:
-                query = query.where(Conversation.created_at < start_datetime_utc)
+                query = query.where(Conversation.created_at > start_datetime_utc)
 
         if args['end']:
             end_datetime = datetime.strptime(args['end'], '%Y-%m-%d %H:%M')
