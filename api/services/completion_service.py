@@ -71,7 +71,8 @@ class CompletionService:
 
             if not conversation.override_model_configs:
                 app_model_config = db.session.query(AppModelConfig).filter(
-                    AppModelConfig.id == conversation.app_model_config_id,
+                    # AppModelConfig.id == conversation.app_model_config_id,
+                    AppModelConfig.id == app_model.app_model_config_id,
                     AppModelConfig.app_id == app_model.id
                 ).first()
 
