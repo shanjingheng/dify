@@ -75,12 +75,18 @@ const PARAM_MAP = {
 const getFormattedChatList = (messages: ChatMessage[]) => {
   const newChatList: IChatItem[] = []
   messages.forEach((item: ChatMessage) => {
+    const moreData = {
+      time: dayjs.unix(item.created_at).format('YYYY-MM-DD HH:mm'),
+      tokens: item.answer_tokens + item.message_tokens,
+      latency: item.provider_response_latency.toFixed(2),
+    }
     newChatList.push({
       id: `question-${item.id}`,
       content: item.inputs.query || item.inputs.default_input || item.query, // text generation: item.inputs.query; chat: item.query
       isAnswer: false,
       log: item.message as any,
       message_files: item.message_files,
+      more: moreData,
     })
 
     newChatList.push({
@@ -90,11 +96,7 @@ const getFormattedChatList = (messages: ChatMessage[]) => {
       adminFeedback: item.feedbacks.find(item => item.from_source === 'admin'), // admin feedback
       feedbackDisabled: false,
       isAnswer: true,
-      more: {
-        time: dayjs.unix(item.created_at).format('hh:mm A'),
-        tokens: item.answer_tokens + item.message_tokens,
-        latency: item.provider_response_latency.toFixed(2),
-      },
+      more: moreData,
       annotation: item.annotation,
     })
   })

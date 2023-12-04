@@ -13,11 +13,18 @@ export type IMoreInfoProps = {
 
 const MoreInfo: FC<IMoreInfoProps> = ({ more, isQuestion, className }) => {
   const { t } = useTranslation()
-  return (<div className={`mt-1 w-full text-xs text-gray-400 ${isQuestion ? 'mr-2 text-right ' : 'pl-2 text-left float-right'} ${className}`}>
-    <span>{`${t('appLog.detail.timeConsuming')} ${more.latency}${t('appLog.detail.second')}`}</span>
-    <span>{`${t('appLog.detail.tokenCost')} ${formatNumber(more.tokens)}`}</span>
-    <span>· </span>
-    <span>{more.time} </span>
-  </div>)
+  return (
+    <div className={`mt-1 w-full text-xs text-gray-400 ${isQuestion ? 'mr-4 text-right ' : 'pl-2 text-left float-right'} ${className}`}>
+      { isQuestion && <span>{more.time}</span> }
+      {
+        !isQuestion && (
+          <>
+            <span>{`${t('appLog.detail.timeConsuming')} ${more.latency}${t('appLog.detail.second')}`}</span>
+            <span>{`${t('appLog.detail.tokenCost')} ${formatNumber(more.tokens)}`}</span>
+          </>
+        )
+      }
+    </div>
+  )
 }
 export default React.memo(MoreInfo)

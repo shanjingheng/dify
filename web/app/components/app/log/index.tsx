@@ -56,7 +56,7 @@ const EmptyElement: FC<{ appUrl: string }> = ({ appUrl }) => {
 
 const Logs: FC<ILogsProps> = ({ appId }) => {
   const { t } = useTranslation()
-  const [queryParams, setQueryParams] = useState<QueryParam>({ period: 7, annotation_status: 'all' })
+  const [queryParams, setQueryParams] = useState<QueryParam>({ period: 7, annotation_status: 'all', time_type: 'created' })
   const [currPage, setCurrPage] = React.useState<number>(0)
 
   const query = {

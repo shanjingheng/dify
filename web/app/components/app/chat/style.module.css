@@ -51,6 +51,7 @@
 .questionWrapWrap {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 .question {
