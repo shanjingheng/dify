@@ -1,5 +1,6 @@
 import json
 import time
+import datetime
 from typing import Optional, Union, List
 
 from core.callback_handler.entity.agent_loop import AgentLoop
@@ -187,6 +188,9 @@ class ConversationMessageTask:
         self.message.answer_price_unit = answer_price_unit
         self.message.provider_response_latency = time.perf_counter() - self.start_at
         self.message.total_price = total_price
+
+        conversation = db.session.query(Conversation).filter(Conversation.id == self.message.conversation_id).first()
+        conversation.updated_at(datetime.datetime.utcnow())
 
         db.session.commit()
 
