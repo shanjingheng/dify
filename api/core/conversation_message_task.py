@@ -190,7 +190,7 @@ class ConversationMessageTask:
         self.message.total_price = total_price
 
         conversation = db.session.query(Conversation).filter(Conversation.id == self.message.conversation_id).first()
-        conversation.updated_at(datetime.datetime.utcnow())
+        conversation.updated_at = datetime.datetime.utcnow()
 
         db.session.commit()
 
