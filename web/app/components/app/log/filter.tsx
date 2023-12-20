@@ -61,7 +61,7 @@ const Filter: FC<IFilterProps> = ({ appId, queryParams, setQueryParams }: IFilte
             { value: 'not_annotated', name: t('appLog.filter.annotation.not_annotated') }]}
         />
       </div>
-      <div className="relative ml-4 rounded-md mr-4">
+      <div className="relative rounded-md mr-4">
         <SimpleSelect
           defaultValue={'created'}
           className='!w-[200px]'
@@ -72,6 +72,20 @@ const Filter: FC<IFilterProps> = ({ appId, queryParams, setQueryParams }: IFilte
           }
           items={[{ value: 'created', name: t('appLog.filter.timeType.createdTime') },
             { value: 'updated', name: t('appLog.filter.timeType.updatedTime') }]}
+        />
+      </div>
+      <div className="relative rounded-md mr-4">
+        <SimpleSelect
+          defaultValue={'all'}
+          className='!w-[200px]'
+          onSelect={
+            (item) => {
+              setQueryParams({ ...queryParams, from_source: item.value as string })
+            }
+          }
+          items={[{ value: 'all', name: t('appLog.filter.fromSource.all') },
+            { value: 'console', name: 'console' },
+            { value: 'api', name: 'api' }]}
         />
       </div>
       <div className="relative">

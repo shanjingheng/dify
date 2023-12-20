@@ -92,6 +92,7 @@ conversation_fields = {
     'from_account_id': fields.String,
     'read_at': TimestampField,
     'created_at': TimestampField,
+    'updated_at': TimestampField,
     'annotation': fields.Nested(annotation_fields, allow_null=True),
     'model_config': fields.Nested(simple_model_config_fields),
     'user_feedback_stats': fields.Nested(feedback_stat_fields),

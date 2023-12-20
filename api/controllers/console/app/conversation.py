@@ -38,6 +38,7 @@ class CompletionConversationApi(Resource):
         parser.add_argument('page', type=int_range(1, 99999), default=1, location='args')
         parser.add_argument('limit', type=int_range(1, 100), default=20, location='args')
         parser.add_argument('time_type', type=str, choices=['created', 'updated'], default='created',  location='args')
+        parser.add_argument('from_source', type=str, choices=['console', 'api', 'all'], default='all', location='args')
         args = parser.parse_args()
 
         # get app info
@@ -91,8 +92,14 @@ class CompletionConversationApi(Resource):
             query = query.outerjoin(
                 MessageAnnotation, MessageAnnotation.conversation_id == Conversation.id
             ).group_by(Conversation.id).having(func.count(MessageAnnotation.id) == 0)
+        
+        if args['from_source'] != 'all':
+            query = query.where(Conversation.from_source == args['from_source'])
 
-        query = query.order_by(Conversation.created_at.desc())
+        if args['time_type'] == 'updated':
+            query = query.order_by(Conversation.updated_at.desc())
+        else:
+            query = query.order_by(Conversation.created_at.desc())
 
         conversations = db.paginate(
             query,
@@ -156,6 +163,7 @@ class ChatConversationApi(Resource):
         parser.add_argument('page', type=int_range(1, 99999), required=False, default=1, location='args')
         parser.add_argument('limit', type=int_range(1, 100), required=False, default=20, location='args')
         parser.add_argument('time_type', type=str, choices=['created', 'updated'], default='created',  location='args')
+        parser.add_argument('from_source', type=str, choices=['console', 'api', 'all'], default='all', location='args')
         args = parser.parse_args()
 
         # get app info
@@ -220,8 +228,14 @@ class ChatConversationApi(Resource):
                 .group_by(Conversation.id)
                 .having(func.count(Message.id) >= args['message_count_gte'])
             )
-
-        query = query.order_by(Conversation.created_at.desc())
+        
+        if args['from_source'] != 'all':
+            query = query.where(Conversation.from_source == args['from_source'])
+        
+        if args['time_type'] == 'updated':
+            query = query.order_by(Conversation.updated_at.desc())
+        else:
+            query = query.order_by(Conversation.created_at.desc())
 
         conversations = db.paginate(
             query,

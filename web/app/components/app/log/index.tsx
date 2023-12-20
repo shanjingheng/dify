@@ -25,6 +25,7 @@ export type QueryParam = {
   annotation_status?: string
   keyword?: string
   time_type?: string
+  from_source?: string
 }
 
 // Custom page count is not currently supported.
@@ -56,7 +57,7 @@ const EmptyElement: FC<{ appUrl: string }> = ({ appUrl }) => {
 
 const Logs: FC<ILogsProps> = ({ appId }) => {
   const { t } = useTranslation()
-  const [queryParams, setQueryParams] = useState<QueryParam>({ period: 7, annotation_status: 'all', time_type: 'created' })
+  const [queryParams, setQueryParams] = useState<QueryParam>({ period: 7, annotation_status: 'all', time_type: 'created', from_source: 'all' })
   const [currPage, setCurrPage] = React.useState<number>(0)
 
   const query = {
@@ -103,7 +104,7 @@ const Logs: FC<ILogsProps> = ({ appId }) => {
         {total === undefined
           ? <Loading type='app' />
           : total > 0
-            ? <List logs={isChatMode ? chatConversations : completionConversations} appDetail={appDetail} onRefresh={isChatMode ? mutateChatList : mutateCompletionList} />
+            ? <List logs={isChatMode ? chatConversations : completionConversations} appDetail={appDetail} onRefresh={isChatMode ? mutateChatList : mutateCompletionList} timeType={queryParams.time_type} />
             : <EmptyElement appUrl={`${appDetail?.site.app_base_url}/${appDetail?.mode}/${appDetail?.site.access_token}`} />
         }
         {/* Show Pagination only if the total is more than the limit */}

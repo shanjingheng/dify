@@ -67,6 +67,9 @@ const translation = {
       createdTime: 'CreatedTime',
       updatedTime: 'UpdatedTime',
     },
+    fromSource: {
+      all: 'All',
+    },
   },
 }
 

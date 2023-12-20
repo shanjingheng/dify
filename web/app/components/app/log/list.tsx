@@ -38,6 +38,7 @@ type IConversationList = {
   logs?: ChatConversationsResponse | CompletionConversationsResponse
   appDetail?: App
   onRefresh: () => void
+  timeType?: string
 }
 
 const defaultValue = 'N/A'
@@ -412,7 +413,7 @@ const ChatConversationDetailComp: FC<{ appId?: string; conversationId?: string }
 /**
  * Conversation list component including basic information
  */
-const ConversationList: FC<IConversationList> = ({ logs, appDetail, onRefresh }) => {
+const ConversationList: FC<IConversationList> = ({ logs, appDetail, onRefresh, timeType }) => {
   const { t } = useTranslation()
   const [showDrawer, setShowDrawer] = useState<boolean>(false) // Whether to display the chat details drawer
   const [currentConversation, setCurrentConversation] = useState<ChatConversationGeneralDetail | CompletionConversationGeneralDetail | undefined>() // Currently selected conversation
@@ -473,7 +474,7 @@ const ConversationList: FC<IConversationList> = ({ logs, appDetail, onRefresh })
                 setCurrentConversation(log)
               }}>
               <td className='text-center align-middle'>{!log.read_at && <span className='inline-block bg-[#3F83F8] h-1.5 w-1.5 rounded'></span>}</td>
-              <td className='w-[160px]'>{dayjs.unix(log.created_at).format(t('appLog.dateTimeFormat') as string)}</td>
+              <td className='w-[160px]'>{dayjs.unix(timeType === 'created' ? log.created_at : log.updated_at).format(t('appLog.dateTimeFormat') as string)}</td>
               <td>{renderTdValue(endUser || defaultValue, !endUser)}</td>
               <td style={{ maxWidth: isChatMode ? 300 : 200 }}>
                 {renderTdValue(leftValue || t('appLog.table.empty.noChat'), !leftValue, isChatMode && log.annotated)}

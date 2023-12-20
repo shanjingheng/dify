@@ -67,6 +67,9 @@ const translation = {
       createdTime: '创建时间',
       updatedTime: '更新时间',
     },
+    fromSource: {
+      all: '全部',
+    },
   },
 }
 
