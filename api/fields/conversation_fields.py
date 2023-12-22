@@ -115,6 +115,7 @@ conversation_message_detail_fields = {
     'from_end_user_id': fields.String,
     'from_account_id': fields.String,
     'created_at': TimestampField,
+    'updated_at': TimestampField,
     'model_config': fields.Nested(model_config_fields),
     'message': fields.Nested(message_detail_fields, attribute='first_message'),
 }
@@ -130,6 +131,7 @@ conversation_with_summary_fields = {
     'summary': fields.String(attribute='summary_or_query'),
     'read_at': TimestampField,
     'created_at': TimestampField,
+    'updated_at': TimestampField,
     'annotated': fields.Boolean,
     'model_config': fields.Nested(simple_model_config_fields),
     'message_count': fields.Integer,
@@ -152,6 +154,7 @@ conversation_detail_fields = {
     'from_end_user_id': fields.String,
     'from_account_id': fields.String,
     'created_at': TimestampField,
+    'updated_at': TimestampField,
     'annotated': fields.Boolean,
     'model_config': fields.Nested(model_config_fields),
     'message_count': fields.Integer,
