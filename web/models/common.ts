@@ -1,3 +1,5 @@
+import type { I18nText } from '@/i18n/language'
+
 export type CommonResponse = {
   result: 'success' | 'fail'
 }
@@ -9,6 +11,10 @@ export type OauthResponse = {
 export type SetupStatusResponse = {
   step: 'finished' | 'not_started'
   setup_at?: Date
+}
+
+export type InitValidateStatusResponse = {
+  status: 'finished' | 'not_started'
 }
 
 export type UserProfileResponse = {
@@ -123,6 +129,10 @@ export type ICurrentWorkspace = Omit<IWorkspace, 'current'> & {
   providers: Provider[]
   in_trail: boolean
   trial_end_reason?: string
+  custom_config?: {
+    remove_webapp_brand?: boolean
+    replace_webapp_logo?: string
+  }
 }
 
 export type DataSourceNotionPage = {
@@ -179,11 +189,6 @@ export type FileUploadConfigResponse = {
   image_file_size_limit?: number | string
 }
 
-export type DocumentsLimitResponse = {
-  documents_count: number
-  documents_limit: number
-}
-
 export type InvitationResult = {
   status: 'success'
   email: string
@@ -205,11 +210,6 @@ export type ApiBasedExtension = {
   api_key?: string
 }
 
-export type I18nText = {
-  'en-US': string
-  'zh-Hans': string
-}
-
 export type CodeBasedExtensionForm = {
   type: string
   label: I18nText
@@ -223,7 +223,7 @@ export type CodeBasedExtensionForm = {
 
 export type CodeBasedExtensionItem = {
   name: string
-  label: I18nText
+  label: any
   form_schema: CodeBasedExtensionForm[]
 }
 export type CodeBasedExtension = {

@@ -3,7 +3,9 @@
   <a href="./README.md">English</a> |
   <a href="./README_CN.md">简体中文</a> |
   <a href="./README_JA.md">日本語</a> |
-  <a href="./README_ES.md">Español</a>
+  <a href="./README_ES.md">Español</a> |
+  <a href="./README_KL.md">Klingon</a> |
+  <a href="./README_FR.md">Français</a>
 </p>
 
 <p align="center">
@@ -17,6 +19,12 @@
             alt="follow on Twitter"></a>
     <a href="https://hub.docker.com/u/langgenius" target="_blank">
         <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/langgenius/dify-web"></a>
+</p>
+
+<p align="center">
+   <a href="https://dify.ai/blog/dify-ai-unveils-ai-agent-creating-gpts-and-assistants-with-various-llms" target="_blank">
+   Dify.AI Unveils AI Agent: Creating GPTs and Assistants with Various LLMs
+  </a>
 </p>
 
 **Dify** es una plataforma de desarrollo de aplicaciones para modelos de lenguaje de gran tamaño (LLM) que ya ha visto la creación de más de **100,000** aplicaciones basadas en Dify.AI. Integra los conceptos de Backend como Servicio y LLMOps, cubriendo el conjunto de tecnologías esenciales requerido para construir aplicaciones nativas de inteligencia artificial generativa, incluyendo un motor RAG incorporado. Con Dify, **puedes auto-desplegar capacidades similares a las de Assistants API y GPTs basadas en cualquier LLM.**
@@ -50,11 +58,15 @@ Dify se caracteriza por su neutralidad de modelo y es un conjunto tecnológico c
 
 **3. Motor RAG**: Incluye varias capacidades RAG basadas en indexación de texto completo o incrustaciones de base de datos vectoriales, permitiendo la carga directa de PDFs, TXTs y otros formatos de texto.
 
-**4. Agentes**: Un marco de Agentes basado en Llamadas de Función que permite a los usuarios configurar lo que ven es lo que obtienen. Dify incluye capacidades básicas de plugins como la Búsqueda de Google.
+**4. Agente de IA**: Basado en la llamada de funciones y ReAct, el marco de inferencia del Agente permite a los usuarios personalizar las herramientas, lo que ves es lo que obtienes. Dify proporciona más de una docena de capacidades de llamada de herramientas incorporadas, como Búsqueda de Google, DELL·E, Difusión Estable, WolframAlpha, etc.
 
 **5. Operaciones Continuas**: Monitorear y analizar registros de aplicaciones y rendimiento, mejorando continuamente Prompts, conjuntos de datos o modelos usando datos de producción.
 
 ## Antes de Empezar
+
+**¡Danos una estrella, y recibirás notificaciones instantáneas de todos los nuevos lanzamientos en GitHub!**
+
+![star-us](https://github.com/langgenius/dify/assets/100913391/95f37259-7370-4456-a9f0-0bc01ef8642f)
 
 - [Sitio web](https://dify.ai)
 - [Documentación](https://docs.dify.ai)
@@ -109,4 +121,4 @@ Para proteger tu privacidad, evita publicar problemas de seguridad en GitHub. En
 
 ## Licencia
 
-Este repositorio está disponible bajo la [Licencia de código abierto de Dify](LICENSE).
+Este repositorio está disponible bajo la [Licencia de Código Abierto Dify](LICENSE), que es esencialmente Apache 2.0 con algunas restricciones adicionales.

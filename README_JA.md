@@ -4,7 +4,8 @@
   <a href="./README_CN.md">简体中文</a> |
   <a href="./README_JA.md">日本語</a> |
   <a href="./README_ES.md">Español</a> |
-  <a href="./README_KL.md">Klingon</a>
+  <a href="./README_KL.md">Klingon</a> |
+  <a href="./README_FR.md">Français</a>
 </p>
 
 <p align="center">
@@ -20,9 +21,18 @@
         <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/langgenius/dify-web"></a>
 </p>
 
+<p align="center">
+   <a href="https://dify.ai/blog/dify-ai-unveils-ai-agent-creating-gpts-and-assistants-with-various-llms" target="_blank">
+   Dify.AI Unveils AI Agent: Creating GPTs and Assistants with Various LLMs
+  </a>
+</p>
+
+
 "Difyは、既にDify.AI上で10万以上のアプリケーションが構築されているLLMアプリケーション開発プラットフォームです。バックエンド・アズ・ア・サービスとLLMOpsの概念を統合し、組み込みのRAGエンジンを含む、生成AIネイティブアプリケーションを構築するためのコアテックスタックをカバーしています。Difyを使用すると、どのLLMに基づいても、Assistants APIやGPTのような機能を自己デプロイすることができます。"
 
 Please note that translating complex technical terms can sometimes result in slight variations in meaning due to differences in language nuances.
+
+![](./images/demo.png)
 
 ## クラウドサービスの利用
 
@@ -41,8 +51,25 @@ Difyはモデルニュートラルであり、LangChainのようなハードコ�
 | **サポートされるLLMs** | 豊富な種類 | GPTのみ | 豊富な種類 |
 | **ローカルデプロイメント** | サポート済み | 非サポート | 該当なし |
 
+ ## 機能
+
+![](./images/models.png)
+
+**1\. LLMサポート**: OpenAIのGPTファミリーモデルやLlama2ファミリーのオープンソースモデルとの統合。 実際、Difyは主要な商用モデルとオープンソースモデル(ローカルでデプロイまたはMaaSベース)をサポートしています。
+
+**2\. プロンプトIDE**: チームとのLLMベースのアプリケーションとサービスの視覚的なオーケストレーション。
+
+**3\. RAGエンジン**: フルテキストインデックスまたはベクトルデータベース埋め込みに基づくさまざまなRAG機能を含み、PDF、TXT、その他のテキストフォーマットの直接アップロードを可能にします。
+
+**4. AIエージェント**: 関数呼び出しとReActに基づくAgent推論フレームワークにより、ユーザーはツールをカスタマイズすることができます。Difyは、Google検索、DELL·E、Stable Diffusion、WolframAlphaなど、十数種類の組み込みツール呼び出し機能を提供しています。
+
+**5\. 継続的運用**: アプリケーションログとパフォーマンスを監視および分析し、運用データを使用してプロンプト、データセット、またはモデルを継続的に改善します。
 
 ## 開始する前に
+
+**私たちをスターして、GitHub上でのすべての新しいリリースに対する即時通知を受け取ります！**
+
+![私たちをスターして](https://github.com/langgenius/dify/assets/100913391/95f37259-7370-4456-a9f0-0bc01ef8642f)
 
 - [Website](https://dify.ai)
 - [Docs](https://docs.dify.ai)
@@ -100,4 +127,4 @@ Difyに貢献していただき、コードの提出、問題の報告、新し�
 
 ## ライセンス
 
-このリポジトリは、[Dify Open Source License](LICENSE) のもとで利用できます。
+ このリポジトリは、基本的にApache 2.0にいくつかの追加制限を加えた[Difyオープンソースライセンス](LICENSE)の下で利用できます。

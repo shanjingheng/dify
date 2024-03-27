@@ -4,7 +4,8 @@
   <a href="./README_CN.md">简体中文</a> |
   <a href="./README_JA.md">日本語</a> |
   <a href="./README_ES.md">Español</a> |
-  <a href="./README_KL.md">Klingon</a>
+  <a href="./README_KL.md">Klingon</a> |
+  <a href="./README_FR.md">Français</a>
 </p>
 
 <p align="center">
@@ -51,11 +52,15 @@ Dify Daq rIn neutrality 'ej Hoch, LangChain tInHar HubwI'. maH Daqbe'law' Qawqar
 
 **3. RAG Engine**: RAG vaD tIqpu' lo'taH indexing qor neH vector database wa' embeddings wIj, PDFs, TXTs, 'ej ghojmoHmoH HIq qorlIj je upload.
 
-**4. jenSuvpu'**: jenbe' SuDqang naQ moDwu' jenSuvpu' porgh cha'logh choHvam. Dify Google Search Hur vItlhutlh plugin choH.
+**4. AI Agent**: Function Calling 'ej ReAct Daq Hurmey, Agent inference framework Hoch users customize tools, vaj 'oH QaQ. Dify Hoch loS ghaH 'ej wa'vatlh built-in tool calling capabilities, Google Search, DELL·E, Stable Diffusion, WolframAlpha, 'ej.
 
 **5. QaS muDHa'wI': cha'logh wa' pIq mI' logs 'ej quv yIn, vItlhutlh tIq 'e'wIj lo'taHmoHmoH Prompts, vItlhutlh, Hurmey ghaH production data jatlh.
 
 ## Do'wI' qabmey lo'taH
+
+**maHvaD jatlhchugh, GitHub Daq Hoch chu' ghompu'vam tIqel yInob!**
+
+![star-us](https://github.com/langgenius/dify/assets/100913391/95f37259-7370-4456-a9f0-0bc01ef8642f)
 
 - [Website](https://dify.ai)
 - [Docs](https://docs.dify.ai)

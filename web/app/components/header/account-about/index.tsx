@@ -2,13 +2,11 @@
 import { useTranslation } from 'react-i18next'
 import classNames from 'classnames'
 import Link from 'next/link'
-import { useContext } from 'use-context-selector'
 import s from './index.module.css'
 import Modal from '@/app/components/base/modal'
 import { XClose } from '@/app/components/base/icons/src/vender/line/general'
 import type { LangGeniusVersionResponse } from '@/models/common'
 import { IS_CE_EDITION } from '@/config'
-import I18n from '@/context/i18n'
 import LogoSite from '@/app/components/base/logo/logo-site'
 
 type IAccountSettingProps = {
@@ -24,7 +22,6 @@ export default function AccountAbout({
   onCancel,
 }: IAccountSettingProps) {
   const { t } = useTranslation()
-  const { locale } = useContext(I18n)
   const isLatest = langeniusVersionInfo.current_version === langeniusVersionInfo.latest_version
 
   return (
@@ -45,10 +42,10 @@ export default function AccountAbout({
             <div className='text-[#1C64F2]'>
               {
                 IS_CE_EDITION
-                  ? <Link href={'https://github.com/langgenius/dify/blob/main/LICENSE'} target='_blank'>Open Source License</Link>
+                  ? <Link href={'https://github.com/langgenius/dify/blob/main/LICENSE'} target='_blank' rel='noopener noreferrer'>Open Source License</Link>
                   : <>
-                    <Link href={locale === 'en' ? 'https://docs.dify.ai/user-agreement/privacy-policy' : 'https://docs.dify.ai/v/zh-hans/yong-hu-xie-yi/yin-si-xie-yi'} target='_blank'>Privacy Policy</Link>,
-                    <Link href={locale === 'en' ? 'https://docs.dify.ai/user-agreement/terms-of-service' : 'https://docs.dify.ai/v/zh-hans/yong-hu-xie-yi/fu-wu-xie-yi'} target='_blank'>Terms of Service</Link>
+                    <Link href='https://dify.ai/privacy' target='_blank' rel='noopener noreferrer'>Privacy Policy</Link>,
+                    <Link href='https://dify.ai/terms' target='_blank' rel='noopener noreferrer'>Terms of Service</Link>
                   </>
               }
             </div>
@@ -67,7 +64,7 @@ export default function AccountAbout({
             <Link
               className={classNames(buttonClassName, 'mr-2')}
               href={'https://github.com/langgenius/dify/releases'}
-              target='_blank'
+              target='_blank' rel='noopener noreferrer'
             >
               {t('common.about.changeLog')}
             </Link>
@@ -76,7 +73,7 @@ export default function AccountAbout({
                 <Link
                   className={classNames(buttonClassName, 'text-primary-600')}
                   href={langeniusVersionInfo.release_notes}
-                  target='_blank'
+                  target='_blank' rel='noopener noreferrer'
                 >
                   {t('common.about.updateNow')}
                 </Link>

@@ -3,9 +3,9 @@ import type { FC } from 'react'
 import React from 'react'
 import { useContext } from 'use-context-selector'
 import ExploreContext from '@/context/explore-context'
-import ChatApp from '@/app/components/share/chat'
 import TextGenerationApp from '@/app/components/share/text-generation'
 import Loading from '@/app/components/base/loading'
+import ChatWithHistory from '@/app/components/base/chat/chat-with-history'
 
 export type IInstalledAppProps = {
   id: string
@@ -26,10 +26,10 @@ const InstalledApp: FC<IInstalledAppProps> = ({
   }
 
   return (
-    <div className='h-full p-2'>
+    <div className='h-full py-2 pl-0 pr-2 sm:p-2'>
       {installedApp?.app.mode === 'chat'
         ? (
-          <ChatApp isInstalledApp installedAppInfo={installedApp} />
+          <ChatWithHistory installedAppInfo={installedApp} className='rounded-2xl shadow-md overflow-hidden' />
         )
         : (
           <TextGenerationApp isInstalledApp installedAppInfo={installedApp}/>

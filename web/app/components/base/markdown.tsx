@@ -81,13 +81,13 @@ const useLazyLoad = (ref: RefObject<Element>): boolean => {
   return isIntersecting
 }
 
-export function Markdown(props: { content: string }) {
+export function Markdown(props: { content: string; className?: string }) {
   const [isCopied, setIsCopied] = useState(false)
   const [isSVG, setIsSVG] = useState(false)
   return (
-    <div className="markdown-body">
+    <div className={cn(props.className, 'markdown-body')}>
       <ReactMarkdown
-        remarkPlugins={[RemarkMath, RemarkGfm, RemarkBreaks]}
+        remarkPlugins={[[RemarkMath, { singleDollarTextMath: false }], RemarkGfm, RemarkBreaks]}
         rehypePlugins={[
           RehypeKatex,
         ]}
@@ -120,7 +120,7 @@ export function Markdown(props: { content: string }) {
                       />
                     </div>
                   </div>
-                  { (language === 'mermaid' && isSVG)
+                  {(language === 'mermaid' && isSVG)
                     ? (<Flowchart PrimitiveCode={String(children).replace(/\n$/, '')} />)
                     : (<SyntaxHighlighter
                       {...props}
@@ -143,8 +143,42 @@ export function Markdown(props: { content: string }) {
                 </code>
               )
           },
+          img({ src, alt, ...props }) {
+            return (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={src}
+                alt={alt}
+                width={250}
+                height={250}
+                className="max-w-full h-auto align-middle border-none rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out mt-2 mb-2"
+                {...props}
+              />
+            )
+          },
+          p: (paragraph) => {
+            const { node }: any = paragraph
+            if (node.children[0].tagName === 'img') {
+              const image = node.children[0]
+
+              return (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image.properties.src}
+                    width={250}
+                    height={250}
+                    className="max-w-full h-auto align-middle border-none rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out mt-2 mb-2"
+                    alt={image.properties.alt}
+                  />
+                  <p>{paragraph.children.slice(1)}</p>
+                </>
+              )
+            }
+            return <p>{paragraph.children}</p>
+          },
         }}
-        linkTarget={'_blank'}
+        linkTarget='_blank'
       >
         {/* Markdown detect has problem. */}
         {props.content}

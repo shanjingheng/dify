@@ -1,5 +1,6 @@
 import type { Annotation, MessageRating } from '@/models/log'
 import type { VisionFile } from '@/types/app'
+
 export type MessageMore = {
   time: string
   tokens: number
@@ -16,13 +17,25 @@ export type SubmitAnnotationFunc = (messageId: string, content: string) => Promi
 
 export type DisplayScene = 'web' | 'console'
 
+export type ToolInfoInThought = {
+  name: string
+  input: string
+  output: string
+  isFinished: boolean
+}
+
 export type ThoughtItem = {
   id: string
-  tool: string // plugin or dataset
+  tool: string // plugin or dataset. May has multi.
   thought: string
   tool_input: string
   message_id: string
+  observation: string
+  position: number
+  files?: string[]
+  message_files?: VisionFile[]
 }
+
 export type CitationItem = {
   content: string
   data_source_type: string
@@ -41,7 +54,6 @@ export type CitationItem = {
 export type IChatItem = {
   id: string
   content: string
-  agent_thoughts?: ThoughtItem[]
   citation?: CitationItem[]
   /**
    * Specific message type
@@ -66,13 +78,24 @@ export type IChatItem = {
   annotation?: Annotation
   useCurrentUserAvatar?: boolean
   isOpeningStatement?: boolean
+  suggestedQuestions?: string[]
   log?: { role: string; text: string }[]
+  agent_thoughts?: ThoughtItem[]
   message_files?: VisionFile[]
 }
 
 export type MessageEnd = {
   id: string
-  retriever_resources?: CitationItem[]
+  metadata: {
+    retriever_resources?: CitationItem[]
+    annotation_reply: {
+      id: string
+      account: {
+        id: string
+        name: string
+      }
+    }
+  }
 }
 
 export type MessageReplace = {
@@ -80,4 +103,13 @@ export type MessageReplace = {
   task_id: string
   answer: string
   conversation_id: string
+}
+
+export type AnnotationReply = {
+  id: string
+  task_id: string
+  answer: string
+  conversation_id: string
+  annotation_id: string
+  annotation_author_name: string
 }

@@ -14,6 +14,7 @@ import type { PromptConfig } from '@/models/debug'
 import type { InstalledApp } from '@/models/explore'
 import type { ModerationService } from '@/models/common'
 import { TransferMethod, type VisionFile, type VisionSettings } from '@/types/app'
+
 export type IResultProps = {
   isCallBatchAPI: boolean
   isPC: boolean
@@ -21,6 +22,7 @@ export type IResultProps = {
   isInstalledApp: boolean
   installedAppInfo?: InstalledApp
   isError: boolean
+  isShowTextToSpeech: boolean
   promptConfig: PromptConfig | null
   moreLikeThisEnabled: boolean
   inputs: Record<string, any>
@@ -44,6 +46,7 @@ const Result: FC<IResultProps> = ({
   isInstalledApp,
   installedAppInfo,
   isError,
+  isShowTextToSpeech,
   promptConfig,
   moreLikeThisEnabled,
   inputs,
@@ -57,10 +60,10 @@ const Result: FC<IResultProps> = ({
   visionConfig,
   completionFiles,
 }) => {
-  const [isResponsing, { setTrue: setResponsingTrue, setFalse: setResponsingFalse }] = useBoolean(false)
+  const [isResponding, { setTrue: setRespondingTrue, setFalse: setRespondingFalse }] = useBoolean(false)
   useEffect(() => {
     if (controlStopResponding)
-      setResponsingFalse()
+      setRespondingFalse()
   }, [controlStopResponding])
 
   const [completionRes, doSetCompletionRes] = useState('')
@@ -93,8 +96,13 @@ const Result: FC<IResultProps> = ({
       return true
 
     const prompt_variables = promptConfig?.prompt_variables
-    if (!prompt_variables || prompt_variables?.length === 0)
+    if (!prompt_variables || prompt_variables?.length === 0) {
+      if (completionFiles.find(item => item.transfer_method === TransferMethod.local_file && !item.upload_file_id)) {
+        notify({ type: 'info', message: t('appDebug.errorMessage.waitForImgUpload') })
+        return false
+      }
       return true
+    }
 
     let hasEmptyInput = ''
     const requiredVars = prompt_variables?.filter(({ key, name, required }) => {
@@ -122,7 +130,7 @@ const Result: FC<IResultProps> = ({
   }
 
   const handleSend = async () => {
-    if (isResponsing) {
+    if (isResponding) {
       notify({ type: 'info', message: t('appDebug.errorMessage.waitForResponse') })
       return false
     }
@@ -157,13 +165,13 @@ const Result: FC<IResultProps> = ({
     if (!isPC)
       onShowRes()
 
-    setResponsingTrue()
+    setRespondingTrue()
     const startTime = Date.now()
     let isTimeout = false
     const runId = setInterval(() => {
       if (Date.now() - startTime > 1000 * 60) { // 1min timeout
         clearInterval(runId)
-        setResponsingFalse()
+        setRespondingFalse()
         onCompleted(getCompletionRes(), taskId, false)
         isTimeout = true
       }
@@ -178,7 +186,7 @@ const Result: FC<IResultProps> = ({
         if (isTimeout)
           return
 
-        setResponsingFalse()
+        setRespondingFalse()
         setMessageId(tempMessageId)
         onCompleted(getCompletionRes(), taskId, true)
         clearInterval(runId)
@@ -191,7 +199,7 @@ const Result: FC<IResultProps> = ({
         if (isTimeout)
           return
 
-        setResponsingFalse()
+        setRespondingFalse()
         onCompleted(getCompletionRes(), taskId, false)
         clearInterval(runId)
       },
@@ -226,16 +234,17 @@ const Result: FC<IResultProps> = ({
       isMobile={isMobile}
       isInstalledApp={isInstalledApp}
       installedAppId={installedAppInfo?.id}
-      isLoading={isCallBatchAPI ? (!completionRes && isResponsing) : false}
+      isLoading={isCallBatchAPI ? (!completionRes && isResponding) : false}
       taskId={isCallBatchAPI ? ((taskId as number) < 10 ? `0${taskId}` : `${taskId}`) : undefined}
       controlClearMoreLikeThis={controlClearMoreLikeThis}
+      isShowTextToSpeech={isShowTextToSpeech}
     />
   )
 
   return (
     <div className={cn(isNoData && !isCallBatchAPI && 'h-full')}>
       {!isCallBatchAPI && (
-        (isResponsing && !completionRes)
+        (isResponding && !completionRes)
           ? (
             <div className='flex h-full w-full justify-center items-center'>
               <Loading type='area' />

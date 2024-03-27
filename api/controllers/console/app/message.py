@@ -1,27 +1,35 @@
 import json
 import logging
-from typing import Union, Generator
+from collections.abc import Generator
+from typing import Union
 
 from flask import Response, stream_with_context
 from flask_login import current_user
-from flask_restful import Resource, reqparse, marshal_with, fields
+from flask_restful import Resource, fields, marshal_with, reqparse
 from flask_restful.inputs import int_range
-from werkzeug.exceptions import InternalServerError, NotFound
+from werkzeug.exceptions import Forbidden, InternalServerError, NotFound
 
 from controllers.console import api
 from controllers.console.app import _get_app
-from controllers.console.app.error import CompletionRequestError, ProviderNotInitializeError, \
-    AppMoreLikeThisDisabledError, ProviderQuotaExceededError, ProviderModelCurrentlyNotSupportError
+from controllers.console.app.error import (
+    AppMoreLikeThisDisabledError,
+    CompletionRequestError,
+    ProviderModelCurrentlyNotSupportError,
+    ProviderNotInitializeError,
+    ProviderQuotaExceededError,
+)
 from controllers.console.setup import setup_required
-from controllers.console.wraps import account_initialization_required
-from core.model_providers.error import LLMRateLimitError, LLMBadRequestError, LLMAuthorizationError, LLMAPIConnectionError, \
-    ProviderTokenNotInitError, LLMAPIUnavailableError, QuotaExceededError, ModelCurrentlyNotSupportError
-from libs.login import login_required
-from fields.conversation_fields import message_detail_fields
+from controllers.console.wraps import account_initialization_required, cloud_edition_billing_resource_check
+from core.entities.application_entities import InvokeFrom
+from core.errors.error import ModelCurrentlyNotSupportError, ProviderTokenNotInitError, QuotaExceededError
+from core.model_runtime.errors.invoke import InvokeError
+from extensions.ext_database import db
+from fields.conversation_fields import annotation_fields, message_detail_fields
 from libs.helper import uuid_value
 from libs.infinite_scroll_pagination import InfiniteScrollPagination
-from extensions.ext_database import db
-from models.model import MessageAnnotation, Conversation, Message, MessageFeedback
+from libs.login import login_required
+from models.model import Conversation, Message, MessageAnnotation, MessageFeedback
+from services.annotation_service import AppAnnotationService
 from services.completion_service import CompletionService
 from services.errors.app import MoreLikeThisDisabledError
 from services.errors.conversation import ConversationNotExistsError
@@ -151,44 +159,24 @@ class MessageAnnotationApi(Resource):
     @setup_required
     @login_required
     @account_initialization_required
+    @cloud_edition_billing_resource_check('annotation')
+    @marshal_with(annotation_fields)
     def post(self, app_id):
+        # The role of the current user in the ta table must be admin or owner
+        if not current_user.is_admin_or_owner:
+            raise Forbidden()
+
         app_id = str(app_id)
 
-        # get app info
-        app = _get_app(app_id)
-
         parser = reqparse.RequestParser()
-        parser.add_argument('message_id', required=True, type=uuid_value, location='json')
-        parser.add_argument('content', type=str, location='json')
+        parser.add_argument('message_id', required=False, type=uuid_value, location='json')
+        parser.add_argument('question', required=True, type=str, location='json')
+        parser.add_argument('answer', required=True, type=str, location='json')
+        parser.add_argument('annotation_reply', required=False, type=dict, location='json')
         args = parser.parse_args()
+        annotation = AppAnnotationService.up_insert_app_annotation_from_message(args, app_id)
 
-        message_id = str(args['message_id'])
-
-        message = db.session.query(Message).filter(
-            Message.id == message_id,
-            Message.app_id == app.id
-        ).first()
-
-        if not message:
-            raise NotFound("Message Not Exists.")
-
-        annotation = message.annotation
-
-        if annotation:
-            annotation.content = args['content']
-        else:
-            annotation = MessageAnnotation(
-                app_id=app.id,
-                conversation_id=message.conversation_id,
-                message_id=message.id,
-                content=args['content'],
-                account_id=current_user.id
-            )
-            db.session.add(annotation)
-
-        db.session.commit()
-
-        return {'result': 'success'}
+        return annotation
 
 
 class MessageAnnotationCountApi(Resource):
@@ -227,7 +215,13 @@ class MessageMoreLikeThisApi(Resource):
         app_model = _get_app(app_id, 'completion')
 
         try:
-            response = CompletionService.generate_more_like_this(app_model, current_user, message_id, streaming)
+            response = CompletionService.generate_more_like_this(
+                app_model=app_model,
+                user=current_user,
+                message_id=message_id,
+                invoke_from=InvokeFrom.DEBUGGER,
+                streaming=streaming
+            )
             return compact_response(response)
         except MessageNotExistsError:
             raise NotFound("Message Not Exists.")
@@ -239,9 +233,8 @@ class MessageMoreLikeThisApi(Resource):
             raise ProviderQuotaExceededError()
         except ModelCurrentlyNotSupportError:
             raise ProviderModelCurrentlyNotSupportError()
-        except (LLMBadRequestError, LLMAPIConnectionError, LLMAPIUnavailableError,
-                LLMRateLimitError, LLMAuthorizationError) as e:
-            raise CompletionRequestError(str(e))
+        except InvokeError as e:
+            raise CompletionRequestError(e.description)
         except ValueError as e:
             raise e
         except Exception as e:
@@ -249,33 +242,12 @@ class MessageMoreLikeThisApi(Resource):
             raise InternalServerError()
 
 
-def compact_response(response: Union[dict | Generator]) -> Response:
+def compact_response(response: Union[dict, Generator]) -> Response:
     if isinstance(response, dict):
         return Response(response=json.dumps(response), status=200, mimetype='application/json')
     else:
         def generate() -> Generator:
-            try:
-                for chunk in response:
-                    yield chunk
-            except MessageNotExistsError:
-                yield "data: " + json.dumps(api.handle_error(NotFound("Message Not Exists.")).get_json()) + "\n\n"
-            except MoreLikeThisDisabledError:
-                yield "data: " + json.dumps(api.handle_error(AppMoreLikeThisDisabledError()).get_json()) + "\n\n"
-            except ProviderTokenNotInitError as ex:
-                yield "data: " + json.dumps(api.handle_error(ProviderNotInitializeError(ex.description)).get_json()) + "\n\n"
-            except QuotaExceededError:
-                yield "data: " + json.dumps(api.handle_error(ProviderQuotaExceededError()).get_json()) + "\n\n"
-            except ModelCurrentlyNotSupportError:
-                yield "data: " + json.dumps(
-                    api.handle_error(ProviderModelCurrentlyNotSupportError()).get_json()) + "\n\n"
-            except (LLMBadRequestError, LLMAPIConnectionError, LLMAPIUnavailableError,
-                    LLMRateLimitError, LLMAuthorizationError) as e:
-                yield "data: " + json.dumps(api.handle_error(CompletionRequestError(str(e))).get_json()) + "\n\n"
-            except ValueError as e:
-                yield "data: " + json.dumps(api.handle_error(e).get_json()) + "\n\n"
-            except Exception:
-                logging.exception("internal server error.")
-                yield "data: " + json.dumps(api.handle_error(InternalServerError()).get_json()) + "\n\n"
+            yield from response
 
         return Response(stream_with_context(generate()), status=200,
                         mimetype='text/event-stream')
@@ -309,9 +281,8 @@ class MessageSuggestedQuestionApi(Resource):
             raise ProviderQuotaExceededError()
         except ModelCurrentlyNotSupportError:
             raise ProviderModelCurrentlyNotSupportError()
-        except (LLMBadRequestError, LLMAPIConnectionError, LLMAPIUnavailableError,
-                LLMRateLimitError, LLMAuthorizationError) as e:
-            raise CompletionRequestError(str(e))
+        except InvokeError as e:
+            raise CompletionRequestError(e.description)
         except Exception:
             logging.exception("internal server error.")
             raise InternalServerError()

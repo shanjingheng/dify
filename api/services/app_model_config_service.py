@@ -1,15 +1,15 @@
 import re
 import uuid
 
+from core.entities.agent_entities import PlanningStrategy
 from core.external_data_tool.factory import ExternalDataToolFactory
+from core.model_runtime.entities.model_entities import ModelPropertyKey, ModelType
+from core.model_runtime.model_providers import model_provider_factory
 from core.moderation.factory import ModerationFactory
 from core.prompt.prompt_transform import AppMode
-from core.agent.agent_executor import PlanningStrategy
-from core.model_providers.model_provider_factory import ModelProviderFactory
-from core.model_providers.models.entity.model_params import ModelType, ModelMode
+from core.provider_manager import ProviderManager
 from models.account import Account
 from services.dataset_service import DatasetService
-
 
 SUPPORT_TOOLS = ["dataset", "google_search", "web_reader", "wikipedia", "current_datetime"]
 
@@ -34,26 +34,6 @@ class AppModelConfigService:
         if not isinstance(cp, dict):
             raise ValueError("model.completion_params must be of object type")
 
-        # max_tokens
-        if 'max_tokens' not in cp:
-            cp["max_tokens"] = 512
-
-        # temperature
-        if 'temperature' not in cp:
-            cp["temperature"] = 1
-
-        # top_p
-        if 'top_p' not in cp:
-            cp["top_p"] = 1
-
-        # presence_penalty
-        if 'presence_penalty' not in cp:
-            cp["presence_penalty"] = 0
-
-        # presence_penalty
-        if 'frequency_penalty' not in cp:
-            cp["frequency_penalty"] = 0
-
         # stop
         if 'stop' not in cp:
             cp["stop"] = []
@@ -63,20 +43,10 @@ class AppModelConfigService:
         if len(cp["stop"]) > 4:
             raise ValueError("stop sequences must be less than 4")
 
-        # Filter out extra parameters
-        filtered_cp = {
-            "max_tokens": cp["max_tokens"],
-            "temperature": cp["temperature"],
-            "top_p": cp["top_p"],
-            "presence_penalty": cp["presence_penalty"],
-            "frequency_penalty": cp["frequency_penalty"],
-            "stop": cp["stop"]
-        }
-
-        return filtered_cp
+        return cp
 
     @classmethod
-    def validate_configuration(cls, tenant_id: str, account: Account, config: dict, mode: str) -> dict:
+    def validate_configuration(cls, tenant_id: str, account: Account, config: dict, app_mode: str) -> dict:
         # opening_statement
         if 'opening_statement' not in config or not config["opening_statement"]:
             config["opening_statement"] = ""
@@ -125,6 +95,25 @@ class AppModelConfigService:
         if not isinstance(config["speech_to_text"]["enabled"], bool):
             raise ValueError("enabled in speech_to_text must be of boolean type")
 
+        # text_to_speech
+        if 'text_to_speech' not in config or not config["text_to_speech"]:
+            config["text_to_speech"] = {
+                "enabled": False,
+                "voice": "",
+                "language": ""
+            }
+
+        if not isinstance(config["text_to_speech"], dict):
+            raise ValueError("text_to_speech must be of dict type")
+
+        if "enabled" not in config["text_to_speech"] or not config["text_to_speech"]["enabled"]:
+            config["text_to_speech"]["enabled"] = False
+            config["text_to_speech"]["voice"] = ""
+            config["text_to_speech"]["language"] = ""
+
+        if not isinstance(config["text_to_speech"]["enabled"], bool):
+            raise ValueError("enabled in text_to_speech must be of boolean type")
+
         # return retriever resource
         if 'retriever_resource' not in config or not config["retriever_resource"]:
             config["retriever_resource"] = {
@@ -138,7 +127,7 @@ class AppModelConfigService:
             config["retriever_resource"]["enabled"] = False
 
         if not isinstance(config["retriever_resource"]["enabled"], bool):
-            raise ValueError("enabled in speech_to_text must be of boolean type")
+            raise ValueError("enabled in retriever_resource must be of boolean type")
 
         # more_like_this
         if 'more_like_this' not in config or not config["more_like_this"]:
@@ -163,7 +152,8 @@ class AppModelConfigService:
             raise ValueError("model must be of object type")
 
         # model.provider
-        model_provider_names = ModelProviderFactory.get_provider_names()
+        provider_entities = model_provider_factory.get_providers()
+        model_provider_names = [provider.provider for provider in provider_entities]
         if 'provider' not in config["model"] or config["model"]["provider"] not in model_provider_names:
             raise ValueError(f"model.provider is required and must be in {str(model_provider_names)}")
 
@@ -171,18 +161,29 @@ class AppModelConfigService:
         if 'name' not in config["model"]:
             raise ValueError("model.name is required")
 
-        model_provider = ModelProviderFactory.get_preferred_model_provider(tenant_id, config["model"]["provider"])
-        if not model_provider:
+        provider_manager = ProviderManager()
+        models = provider_manager.get_configurations(tenant_id).get_models(
+            provider=config["model"]["provider"],
+            model_type=ModelType.LLM
+        )
+        if not models:
             raise ValueError("model.name must be in the specified model list")
 
-        model_list = model_provider.get_supported_model_list(ModelType.TEXT_GENERATION)
-        model_ids = [m['id'] for m in model_list]
+        model_ids = [m.model for m in models]
         if config["model"]["name"] not in model_ids:
             raise ValueError("model.name must be in the specified model list")
 
+        model_mode = None
+        for model in models:
+            if model.model == config["model"]["name"]:
+                model_mode = model.model_properties.get(ModelPropertyKey.MODE)
+                break
+
         # model.mode
-        if 'mode' not in config['model'] or not config['model']["mode"]:
-            config['model']["mode"] = ""
+        if model_mode:
+            config['model']["mode"] = model_mode
+        else:
+            config['model']["mode"] = "completion"
 
         # model.completion_params
         if 'completion_params' not in config["model"]:
@@ -203,7 +204,7 @@ class AppModelConfigService:
         variables = []
         for item in config["user_input_form"]:
             key = list(item.keys())[0]
-            if key not in ["text-input", "select", "paragraph"]:
+            if key not in ["text-input", "select", "paragraph", "external_data_tool"]:
                 raise ValueError("Keys in user_input_form list can only be 'text-input', 'paragraph'  or 'select'")
 
             form_item = item[key]
@@ -280,34 +281,45 @@ class AppModelConfigService:
 
         for tool in config["agent_mode"]["tools"]:
             key = list(tool.keys())[0]
-            if key not in SUPPORT_TOOLS:
-                raise ValueError("Keys in agent_mode.tools must be in the specified tool list")
+            if key in SUPPORT_TOOLS:
+                # old style, use tool name as key
+                tool_item = tool[key]
 
-            tool_item = tool[key]
+                if "enabled" not in tool_item or not tool_item["enabled"]:
+                    tool_item["enabled"] = False
 
-            if "enabled" not in tool_item or not tool_item["enabled"]:
-                tool_item["enabled"] = False
+                if not isinstance(tool_item["enabled"], bool):
+                    raise ValueError("enabled in agent_mode.tools must be of boolean type")
 
-            if not isinstance(tool_item["enabled"], bool):
-                raise ValueError("enabled in agent_mode.tools must be of boolean type")
+                if key == "dataset":
+                    if 'id' not in tool_item:
+                        raise ValueError("id is required in dataset")
 
-            if key == "dataset":
-                if 'id' not in tool_item:
-                    raise ValueError("id is required in dataset")
+                    try:
+                        uuid.UUID(tool_item["id"])
+                    except ValueError:
+                        raise ValueError("id in dataset must be of UUID type")
 
-                try:
-                    uuid.UUID(tool_item["id"])
-                except ValueError:
-                    raise ValueError("id in dataset must be of UUID type")
-
-                if not cls.is_dataset_exists(account, tool_item["id"]):
-                    raise ValueError("Dataset ID does not exist, please check your permission.")
+                    if not cls.is_dataset_exists(account, tool_item["id"]):
+                        raise ValueError("Dataset ID does not exist, please check your permission.")
+            else:
+                # latest style, use key-value pair
+                if "enabled" not in tool or not tool["enabled"]:
+                    tool["enabled"] = False
+                if "provider_type" not in tool:
+                    raise ValueError("provider_type is required in agent_mode.tools")
+                if "provider_id" not in tool:
+                    raise ValueError("provider_id is required in agent_mode.tools")
+                if "tool_name" not in tool:
+                    raise ValueError("tool_name is required in agent_mode.tools")
+                if "tool_parameters" not in tool:
+                    raise ValueError("tool_parameters is required in agent_mode.tools")
 
         # dataset_query_variable
-        cls.is_dataset_query_variable_valid(config, mode)
+        cls.is_dataset_query_variable_valid(config, app_mode)
 
         # advanced prompt validation
-        cls.is_advanced_prompt_valid(config, mode)
+        cls.is_advanced_prompt_valid(config, app_mode)
 
         # external data tools validation
         cls.is_external_data_tools_valid(tenant_id, config)
@@ -324,6 +336,7 @@ class AppModelConfigService:
             "suggested_questions": config["suggested_questions"],
             "suggested_questions_after_answer": config["suggested_questions_after_answer"],
             "speech_to_text": config["speech_to_text"],
+            "text_to_speech": config["text_to_speech"],
             "retriever_resource": config["retriever_resource"],
             "more_like_this": config["more_like_this"],
             "sensitive_word_avoidance": config["sensitive_word_avoidance"],
@@ -472,6 +485,12 @@ class AppModelConfigService:
         if 'dataset_configs' not in config or not config["dataset_configs"]:
             config["dataset_configs"] = {'retrieval_model': 'single'}
 
+        if 'datasets' not in config["dataset_configs"] or not config["dataset_configs"]["datasets"]:
+            config["dataset_configs"]["datasets"] = {
+                "strategy": "router",
+                "datasets": []
+            }
+
         if not isinstance(config["dataset_configs"], dict):
             raise ValueError("dataset_configs must be of object type")
 
@@ -491,7 +510,7 @@ class AppModelConfigService:
             if config['model']["mode"] not in ['chat', 'completion']:
                 raise ValueError("model.mode must be in ['chat', 'completion'] when prompt_type is advanced")
 
-            if app_mode == AppMode.CHAT.value and config['model']["mode"] == ModelMode.COMPLETION.value:
+            if app_mode == AppMode.CHAT.value and config['model']["mode"] == "completion":
                 user_prefix = config['completion_prompt_config']['conversation_histories_role']['user_prefix']
                 assistant_prefix = config['completion_prompt_config']['conversation_histories_role']['assistant_prefix']
 
@@ -501,7 +520,7 @@ class AppModelConfigService:
                 if not assistant_prefix:
                     config['completion_prompt_config']['conversation_histories_role']['assistant_prefix'] = 'Assistant'
 
-            if config['model']["mode"] == ModelMode.CHAT.value:
+            if config['model']["mode"] == "chat":
                 prompt_list = config['chat_prompt_config']['prompt']
 
                 if len(prompt_list) > 10:

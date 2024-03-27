@@ -23,8 +23,16 @@ feedback_fields = {
 }
 
 annotation_fields = {
+    'id': fields.String,
+    'question': fields.String,
     'content': fields.String,
     'account': fields.Nested(account_fields, allow_null=True),
+    'created_at': TimestampField
+}
+
+annotation_hit_history_fields = {
+    'annotation_id': fields.String(attribute='id'),
+    'annotation_create_account': fields.Nested(account_fields, allow_null=True),
     'created_at': TimestampField
 }
 
@@ -32,6 +40,21 @@ message_file_fields = {
     'id': fields.String,
     'type': fields.String,
     'url': fields.String,
+    'belongs_to': fields.String(default='user'),
+}
+
+agent_thought_fields = {
+    'id': fields.String,
+    'chain_id': fields.String,
+    'message_id': fields.String,
+    'position': fields.Integer,
+    'thought': fields.String,
+    'tool': fields.String,
+    'tool_labels': fields.Raw,
+    'tool_input': fields.String,
+    'created_at': TimestampField,
+    'observation': fields.String,
+    'files': fields.List(fields.String),
 }
 
 message_detail_fields = {
@@ -49,7 +72,9 @@ message_detail_fields = {
     'from_account_id': fields.String,
     'feedbacks': fields.List(fields.Nested(feedback_fields)),
     'annotation': fields.Nested(annotation_fields, allow_null=True),
+    'annotation_hit_history': fields.Nested(annotation_hit_history_fields, allow_null=True),
     'created_at': TimestampField,
+    'agent_thoughts': fields.List(fields.Nested(agent_thought_fields)),
     'message_files': fields.List(fields.Nested(message_file_fields), attribute='files'),
 }
 
@@ -156,6 +181,7 @@ conversation_detail_fields = {
     'created_at': TimestampField,
     'updated_at': TimestampField,
     'annotated': fields.Boolean,
+    'introduction': fields.String,
     'model_config': fields.Nested(model_config_fields),
     'message_count': fields.Integer,
     'user_feedback_stats': fields.Nested(feedback_stat_fields),

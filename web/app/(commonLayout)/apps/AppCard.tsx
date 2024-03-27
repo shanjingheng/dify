@@ -20,6 +20,7 @@ import type { HtmlContentProps } from '@/app/components/base/popover'
 import CustomPopover from '@/app/components/base/popover'
 import Divider from '@/app/components/base/divider'
 import { asyncRunSafe } from '@/utils'
+import { useProviderContext } from '@/context/provider-context'
 
 export type AppCardProps = {
   app: App
@@ -30,6 +31,7 @@ const AppCard = ({ app, onRefresh }: AppCardProps) => {
   const { t } = useTranslation()
   const { notify } = useContext(ToastContext)
   const { isCurrentWorkspaceManager } = useAppContext()
+  const { onPlanInfoChanged } = useProviderContext()
   const { push } = useRouter()
 
   const mutateApps = useContextSelector(
@@ -51,13 +53,12 @@ const AppCard = ({ app, onRefresh }: AppCardProps) => {
       if (onRefresh)
         onRefresh()
       mutateApps()
+      onPlanInfoChanged()
     }
     catch (e: any) {
       notify({
         type: 'error',
-        message: `${t('app.appDeleteFailed')}${
-          'message' in e ? `: ${e.message}` : ''
-        }`,
+        message: `${t('app.appDeleteFailed')}${'message' in e ? `: ${e.message}` : ''}`,
       })
     }
     setShowConfirmDelete(false)
@@ -138,8 +139,11 @@ const AppCard = ({ app, onRefresh }: AppCardProps) => {
     <>
       <div
         onClick={(e) => {
+          if (showSettingsModal)
+            return
           e.preventDefault()
-          push(`/app/${app.id}/overview`)
+
+          push(`/app/${app.id}/${isCurrentWorkspaceManager ? 'configuration' : 'overview'}`)
         }}
         className={style.listItem}
       >
@@ -163,7 +167,7 @@ const AppCard = ({ app, onRefresh }: AppCardProps) => {
                 style.actionIconWrapper,
               )
             }
-            className={'!w-[128px] h-fit !z-20'}
+            className={'!w-[128px] h-fit !z-0'}
             manualClose
           />}
         </div>
@@ -171,7 +175,7 @@ const AppCard = ({ app, onRefresh }: AppCardProps) => {
           {app.model_config?.pre_prompt}
         </div>
         <div className={style.listItemFooter}>
-          <AppModeLabel mode={app.mode} />
+          <AppModeLabel mode={app.mode} isAgent={app.is_agent} />
         </div>
 
         {showConfirmDelete && (
