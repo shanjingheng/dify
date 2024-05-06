@@ -658,6 +658,7 @@ class ApplicationManager:
                 ).first()
             )
             conversation.updated_at = datetime.datetime.utcnow()
+            db.session.commit(conversation)
             db.session.refresh(conversation)
 
         currency = model_schema.pricing.currency if model_schema.pricing else 'USD'
