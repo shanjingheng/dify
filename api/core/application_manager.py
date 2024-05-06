@@ -2,6 +2,7 @@ import json
 import logging
 import threading
 import uuid
+import datetime
 from collections.abc import Generator
 from typing import Any, Optional, Union, cast
 
@@ -656,6 +657,8 @@ class ApplicationManager:
                     Conversation.app_id == app_record.id
                 ).first()
             )
+            conversation.updated_at = datetime.datetime.utcnow()
+            db.session.refresh(conversation)
 
         currency = model_schema.pricing.currency if model_schema.pricing else 'USD'
 
