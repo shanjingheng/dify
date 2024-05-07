@@ -78,13 +78,14 @@ const getFormattedChatList = (messages: ChatMessage[]) => {
   const newChatList: IChatItem[] = []
   messages.forEach((item: ChatMessage) => {
     const moreData = {
-      time: dayjs.unix(item.created_at).format('YYYY-MM-DD HH:mm'),
+      time: dayjs.unix(item.created_at).format('MM-DD HH:mm'),
       tokens: item.answer_tokens + item.message_tokens,
       latency: item.provider_response_latency.toFixed(2),
     }
     newChatList.push({
       id: `question-${item.id}`,
       content: item.inputs.query || item.inputs.default_input || item.query, // text generation: item.inputs.query; chat: item.query
+      more: moreData,
       isAnswer: false,
       log: item.message as any,
       message_files: item.message_files?.filter((file: any) => file.belongs_to === 'user') || [],
@@ -98,11 +99,7 @@ const getFormattedChatList = (messages: ChatMessage[]) => {
       feedbackDisabled: false,
       isAnswer: true,
       message_files: item.message_files?.filter((file: any) => file.belongs_to === 'assistant') || [],
-      more: {
-        time: dayjs.unix(item.created_at).format('hh:mm A'),
-        tokens: item.answer_tokens + item.message_tokens,
-        latency: item.provider_response_latency.toFixed(2),
-      },
+      more: moreData,
       annotation: (() => {
         if (item.annotation_hit_history) {
           return {
