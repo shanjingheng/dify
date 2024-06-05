@@ -32,7 +32,7 @@ class MinimaxChatCompletionPro:
         
         url = f'https://api.minimax.chat/v1/text/chatcompletion_pro?GroupId={group_id}'
 
-        extra_kwargs = {}
+        extra_kwargs = {'mask_sensitive_info': False}
 
         if 'max_tokens' in model_parameters and type(model_parameters['max_tokens']) == int:
             extra_kwargs['tokens_to_generate'] = model_parameters['max_tokens']
